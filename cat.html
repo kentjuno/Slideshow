@@ -9,23 +9,28 @@
             margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: transparent;
         }
 
-        #cat-container {
+        #animation-container {
+            
             position: absolute;
             bottom: -5px; /* Ép sát đáy màn hình + ăn gian 5px để chân đạp đất thật hơn */
             left: -350px;
             width: 300px;
             animation: walk-across 30s linear infinite;
             z-index: 9999;
+
         }
 
         canvas {
-            width: 100%;
+            
+            width: 80%;
             height: auto;
             image-rendering: -moz-crisp-edges;
             image-rendering: -webkit-optimize-contrast;
             image-rendering: pixelated; 
+
         }
 
+        
         @keyframes walk-across {
             0%   { left: -350px; transform: scaleX(1); }
             45%  { left: 110vw; transform: scaleX(1); }
@@ -33,16 +38,17 @@
             95%  { left: -350px; transform: scaleX(-1); }
             100% { left: -350px; transform: scaleX(1); }
         }
+
     </style>
 </head>
 <body>
-    <div id="cat-container">
+    <div id="animation-container">
         <!-- Sử dụng HTML5 Canvas để chiếu Sprite Sheet Animation -->
-        <canvas id="cat-canvas"></canvas>
+        <canvas id="animation-canvas"></canvas>
     </div>
 
     <script>
-        const canvas = document.getElementById('cat-canvas');
+        const canvas = document.getElementById('animation-canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         
         // Nhúng nguyên tệp ảnh vào mã để bỏ qua hoàn toàn lỗi CORS của Browser
@@ -51,14 +57,13 @@
         const img = new Image();
         img.src = b64Data;
         
-        // AI tạo ra 1 tấm ảnh chứa 4 bước đi của mèo (Sprite Sheet 4 frames)
         const totalFrames = 4;
         let currentFrame = 0;
         let lastFrameTime = 0;
-        const frameInterval = 200; // Tốc độ bước chân (ms)
+        const frameInterval = 200; // Tốc độ (ms)
 
         img.onload = function() {
-            const frameWidth = img.width / totalFrames; // Cắt ảnh làm 4
+            const frameWidth = img.width / totalFrames; 
             const frameHeight = img.height;
             
             canvas.width = frameWidth;
@@ -70,13 +75,13 @@
             
             for(let i = 0; i < totalFrames; i++) {
                 ctx.clearRect(0,0, canvas.width, canvas.height);
-                // Vẽ 1 khúc của tấm ảnh dài (1 khung hình)
                 ctx.drawImage(img, i * frameWidth, 0, frameWidth, frameHeight, 0, 0, frameWidth, frameHeight);
                 
                 const imageData = ctx.getImageData(0, 0, frameWidth, frameHeight);
                 const data = imageData.data;
                 for (let j = 0; j < data.length; j += 4) {
                     // Xóa hoàn toàn điểm mầu Trắng -> Alpha = 0
+                    // Cho phép sai số một chút ở vùng rìa chống răng cưa
                     if (data[j] > 230 && data[j+1] > 230 && data[j+2] > 230) {
                         data[j+3] = 0; 
                     }
@@ -86,7 +91,6 @@
                 const frameImg = new Image();
                 frameImg.onload = () => {
                     framesLoaded++;
-                    // Nếu đã xử lý nền xong 4 khung hình thì chạy Animation
                     if (framesLoaded === totalFrames) {
                         requestAnimationFrame(animate);
                     }
@@ -95,24 +99,23 @@
                 transparentFrames.push(frameImg);
             }
 
-            // Vòng lặp liên tục phát các khung hình như video
             function animate(now) {
                 if (!lastFrameTime) lastFrameTime = now;
                 const elapsed = now - lastFrameTime;
                 
-                // Đổi Frame
                 if (elapsed > frameInterval) {
                     currentFrame = (currentFrame + 1) % totalFrames;
                     lastFrameTime = now - (elapsed % frameInterval);
                 }
                 
-                // Lau canvas và Vẽ khung hình hiện tại
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(transparentFrames[currentFrame], 0, 0);
                 
                 requestAnimationFrame(animate);
             }
         };
+        
+        
     </script>
 </body>
 </html>
