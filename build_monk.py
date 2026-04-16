@@ -100,9 +100,9 @@ def build_monk_butterfly():
                         for (let j = 0; j < data.length; j += 4) {{
                             if (data[j+3] !== 0) {{ // Nếu pixel này chưa bị xoá (tức là nằm bên trong nhân vật)
                                 if (data[j] > 220 && data[j+1] > 220 && data[j+2] > 220) {{
-                                    data[j] = 210;
-                                    data[j+1] = 210;
-                                    data[j+2] = 220; // Màu trắng ngà hơi xanh xám để OBS ko nhận diện là trắng xoá
+                                    data[j] = 252;
+                                    data[j+1] = 252;
+                                    data[j+2] = 252; // Lệch trắng cực nhỏ để mắt vẫn đẹp và sáng
                                 }}
                             }}
                         }}
