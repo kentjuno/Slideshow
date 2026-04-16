@@ -60,7 +60,7 @@
         const totalFrames = 4;
         let currentFrame = 0;
         let lastFrameTime = 0;
-        const frameInterval = 200; // Tốc độ (ms)
+        let frameInterval = 200; // Tốc độ (ms)
 
         img.onload = function() {
             const frameWidth = img.width / totalFrames; 

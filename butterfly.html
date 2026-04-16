@@ -49,7 +49,7 @@
         const totalFrames = 3;
         let currentFrame = 0;
         let lastFrameTime = 0;
-        const frameInterval = 100; // Tốc độ (ms)
+        let frameInterval = 100; // Tốc độ (ms)
 
         img.onload = function() {
             const frameWidth = img.width / totalFrames; 
@@ -113,18 +113,30 @@
         let speed = 1.5;
 
         function updateFly() {
+            let maxW = window.innerWidth || 1920;
+            let maxH = window.innerHeight || 1080;
+            
             let dx = targetX - posX;
             let dy = targetY - posY;
             let dist = Math.sqrt(dx*dx + dy*dy);
             
             if (dist < 50) {
-                targetX = Math.random() * (window.innerWidth - 100);
-                targetY = Math.random() * (window.innerHeight - 100);
+                targetX = Math.random() * (maxW - 100);
+                targetY = Math.random() * (maxH - 100);
                 speed = 1.0 + Math.random(); // Vary speed slightly
             }
             
-            posX += (dx / dist) * speed;
-            posY += (dy / dist) * speed;
+            if (dist > 0.001) {
+                posX += (dx / dist) * speed;
+                posY += (dy / dist) * speed;
+            }
+
+            // Boundary safeguard
+            if (isNaN(posX) || isNaN(posY)) {
+                posX = maxW / 2; posY = maxH / 2;
+            }
+            posX = Math.max(-100, Math.min(posX, maxW + 100));
+            posY = Math.max(-100, Math.min(posY, maxH + 100));
             
             let flip = dx < 0 ? -1 : 1; 
 

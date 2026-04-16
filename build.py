@@ -47,7 +47,7 @@ def build_html(image_path, output_html, total_frames, frame_interval, animation_
         const totalFrames = {total_frames};
         let currentFrame = 0;
         let lastFrameTime = 0;
-        const frameInterval = {frame_interval}; // Tốc độ (ms)
+        let frameInterval = {frame_interval}; // Tốc độ (ms)
 
         img.onload = function() {{
             const frameWidth = img.width / totalFrames; 
@@ -171,18 +171,30 @@ butterfly_js = """
         let speed = 1.5;
 
         function updateFly() {
+            let maxW = window.innerWidth || 1920;
+            let maxH = window.innerHeight || 1080;
+            
             let dx = targetX - posX;
             let dy = targetY - posY;
             let dist = Math.sqrt(dx*dx + dy*dy);
             
             if (dist < 50) {
-                targetX = Math.random() * (window.innerWidth - 100);
-                targetY = Math.random() * (window.innerHeight - 100);
+                targetX = Math.random() * (maxW - 100);
+                targetY = Math.random() * (maxH - 100);
                 speed = 1.0 + Math.random(); // Vary speed slightly
             }
             
-            posX += (dx / dist) * speed;
-            posY += (dy / dist) * speed;
+            if (dist > 0.001) {
+                posX += (dx / dist) * speed;
+                posY += (dy / dist) * speed;
+            }
+
+            // Boundary safeguard
+            if (isNaN(posX) || isNaN(posY)) {
+                posX = maxW / 2; posY = maxH / 2;
+            }
+            posX = Math.max(-100, Math.min(posX, maxW + 100));
+            posY = Math.max(-100, Math.min(posY, maxH + 100));
             
             let flip = dx < 0 ? -1 : 1; 
 
@@ -198,3 +210,128 @@ butterfly_js = """
         requestAnimationFrame(updateFly);
 """
 build_html(butterfly_image, butterfly_output, 3, 100, butterfly_anim, butterfly_container, butterfly_canvas, "OBS Butterfly Overlay 24/7", butterfly_js)
+
+
+# ==============================================================
+# 3. Build Cat Chasing
+# ==============================================================
+catchasing_image = r"C:\Users\Kent\.gemini\antigravity\brain\072a3b75-c43c-4b8d-9bef-f0396b7cafdf\cat_pouncing_spritesheet_1776297974601.png"
+catchasing_output = r"f:\AntiGravity\Slideshow\catchasing.html"
+catchasing_container = """
+            position: absolute;
+            width: 200px; /* 2/3 kích thước mèo gốc (300 * 2/3 = 200) */
+            z-index: 9999;
+"""
+catchasing_canvas = """
+            width: 100%;
+            height: auto;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: pixelated; 
+"""
+catchasing_anim = ""
+catchasing_js = """
+        const catContainer = document.getElementById('animation-container');
+        let posX = Math.random() * (window.innerWidth || 1920);
+        let posY = Math.random() * (window.innerHeight || 1080);
+        let targetX = posX;
+        let targetY = posY;
+        let state = 'run'; // 'run', 'prepare', 'pounce'
+        let speed = 0.4; 
+
+        function getNewTarget() {
+            let maxW = (window.innerWidth || 1920) - 200;
+            let maxH = (window.innerHeight || 1080) - 200;
+            if (maxW < 0) maxW = 0;
+            if (maxH < 0) maxH = 0;
+            return {
+                x: Math.random() * maxW,
+                y: Math.random() * maxH
+            };
+        }
+
+        let newT = getNewTarget();
+        targetX = newT.x;
+        targetY = newT.y;
+
+        function updateChase() {
+            let maxW = window.innerWidth || 1920;
+            let maxH = window.innerHeight || 1080;
+
+            let dx = targetX - posX;
+            let dy = targetY - posY;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            
+            // Fix overshoot bằng cách xem dist có bé hơn speed (khoảng cách vừa nhảy) không
+            let reachedTarget = dist <= Math.max(speed, 5); 
+
+            if (state === 'run') {
+                frameInterval = 250; 
+                if (reachedTarget) {
+                    posX = targetX;
+                    posY = targetY;
+                    
+                    let n = getNewTarget();
+                    targetX = n.x;
+                    targetY = n.y;
+                    
+                    if (Math.random() < 0.8) {
+                        state = 'prepare';
+                        speed = 0; 
+                        frameInterval = 999999; 
+                        setTimeout(() => {
+                            state = 'pounce';
+                            frameInterval = 50; 
+                            speed = 15 + Math.random() * 15; 
+                        }, 2000); 
+                    } else {
+                        // Reset lại tốc độ lén lút
+                        speed = 0.2 + Math.random() * 0.4;
+                    }
+                } else if (dist > 0.001) {
+                    posX += (dx / dist) * speed;
+                    posY += (dy / dist) * speed;
+                }
+            } else if (state === 'pounce') {
+                if (reachedTarget) {
+                    posX = targetX;
+                    posY = targetY;
+                    state = 'run';
+                    // QUAN TRỌNG: Trả lại tốc độ chậm đi bộ sau khi vồ tới nơi
+                    speed = 0.2 + Math.random() * 0.4; 
+                    
+                    let n = getNewTarget();
+                    targetX = n.x;
+                    targetY = n.y;
+                } else if (dist > 0.001) {
+                    posX += (dx / dist) * speed;
+                    posY += (dy / dist) * speed;
+                }
+            }
+            
+            // Safety bounds to prevent flying out of screen forever
+            if (isNaN(posX) || isNaN(posY)) {
+                posX = maxW / 2; posY = maxH / 2;
+                let n = getNewTarget();
+                targetX = n.x; targetY = n.y;
+            }
+            posX = Math.max(-200, Math.min(posX, maxW + 200));
+            posY = Math.max(-200, Math.min(posY, maxH + 200));
+            
+            let flip = (dx >= 0) ? 1 : -1; 
+            
+            let angle = 0;
+            if (state === 'pounce') {
+                angle = Math.atan2(dy, Math.abs(dx)) * 180 / Math.PI;
+            }
+            
+            catContainer.style.left = posX + 'px';
+            catContainer.style.top = posY + 'px';
+            catContainer.style.transform = `scaleX(${flip}) rotate(${angle}deg)`;
+
+            requestAnimationFrame(updateChase);
+        }
+        requestAnimationFrame(updateChase);
+"""
+
+build_html(catchasing_image, catchasing_output, 4, 100, catchasing_anim, catchasing_container, catchasing_canvas, "OBS Cat Chasing 24/7", catchasing_js)
