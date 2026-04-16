@@ -50,7 +50,7 @@ def build_monk_butterfly():
 
     <script>
         // Utilities to process sprites
-        function loadProcessedSprite(b64Data, totalFrames, callback) {{
+        function loadProcessedSprite(b64Data, totalFrames, useFloodFill, callback) {{
             const img = new Image();
             img.src = b64Data;
             img.onload = function() {{
@@ -70,27 +70,36 @@ def build_monk_butterfly():
                     
                     const imageData = ctx.getImageData(0, 0, frameWidth, frameHeight);
                     const data = imageData.data;
-                    const width = frameWidth;
-                    const height = frameHeight;
-                    const visited = new Uint8Array(width * height);
-                    const stackX = [0];
-                    const stackY = [0];
                     
-                    while (stackX.length > 0) {{
-                        const x = stackX.pop();
-                        const y = stackY.pop();
-                        const idx = y * width + x;
+                    if (useFloodFill) {{
+                        const width = frameWidth;
+                        const height = frameHeight;
+                        const visited = new Uint8Array(width * height);
+                        const stackX = [0];
+                        const stackY = [0];
                         
-                        if (visited[idx]) continue;
-                        visited[idx] = 1;
-                        
-                        const p = idx * 4;
-                        if (data[p] > 230 && data[p+1] > 230 && data[p+2] > 230) {{
-                            data[p+3] = 0; 
-                            if (x > 0 && !visited[idx - 1]) {{ stackX.push(x - 1); stackY.push(y); }}
-                            if (x < width - 1 && !visited[idx + 1]) {{ stackX.push(x + 1); stackY.push(y); }}
-                            if (y > 0 && !visited[idx - width]) {{ stackX.push(x); stackY.push(y - 1); }}
-                            if (y < height - 1 && !visited[idx + width]) {{ stackX.push(x); stackY.push(y + 1); }}
+                        while (stackX.length > 0) {{
+                            const x = stackX.pop();
+                            const y = stackY.pop();
+                            const idx = y * width + x;
+                            
+                            if (visited[idx]) continue;
+                            visited[idx] = 1;
+                            
+                            const p = idx * 4;
+                            if (data[p] > 230 && data[p+1] > 230 && data[p+2] > 230) {{
+                                data[p+3] = 0; 
+                                if (x > 0 && !visited[idx - 1]) {{ stackX.push(x - 1); stackY.push(y); }}
+                                if (x < width - 1 && !visited[idx + 1]) {{ stackX.push(x + 1); stackY.push(y); }}
+                                if (y > 0 && !visited[idx - width]) {{ stackX.push(x); stackY.push(y - 1); }}
+                                if (y < height - 1 && !visited[idx + width]) {{ stackX.push(x); stackY.push(y + 1); }}
+                            }}
+                        }}
+                    }} else {{
+                        for (let j = 0; j < data.length; j += 4) {{
+                            if (data[j] > 230 && data[j+1] > 230 && data[j+2] > 230) {{
+                                data[j+3] = 0; 
+                            }}
                         }}
                     }}
                     ctx.putImageData(imageData, 0, 0);
@@ -114,7 +123,7 @@ def build_monk_butterfly():
         let monkFrames = [];
         let monkAttentive = false;
 
-        loadProcessedSprite("{monk_b64}", 2, (frames, w, h) => {{
+        loadProcessedSprite("{monk_b64}", 2, true, (frames, w, h) => {{
             monkFrames = frames;
             monkCanvas.width = w;
             monkCanvas.height = h;
@@ -165,7 +174,7 @@ def build_monk_butterfly():
             }};
         }}
 
-        loadProcessedSprite("{butterfly_b64}", 3, (frames, w, h) => {{
+        loadProcessedSprite("{butterfly_b64}", 3, false, (frames, w, h) => {{
             bfFrames = frames;
             bfCanvas.width = w;
             bfCanvas.height = h;
