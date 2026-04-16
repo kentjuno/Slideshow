@@ -70,9 +70,27 @@ def build_monk_butterfly():
                     
                     const imageData = ctx.getImageData(0, 0, frameWidth, frameHeight);
                     const data = imageData.data;
-                    for (let j = 0; j < data.length; j += 4) {{
-                        if (data[j] > 230 && data[j+1] > 230 && data[j+2] > 230) {{
-                            data[j+3] = 0; 
+                    const width = frameWidth;
+                    const height = frameHeight;
+                    const visited = new Uint8Array(width * height);
+                    const stackX = [0];
+                    const stackY = [0];
+                    
+                    while (stackX.length > 0) {{
+                        const x = stackX.pop();
+                        const y = stackY.pop();
+                        const idx = y * width + x;
+                        
+                        if (visited[idx]) continue;
+                        visited[idx] = 1;
+                        
+                        const p = idx * 4;
+                        if (data[p] > 230 && data[p+1] > 230 && data[p+2] > 230) {{
+                            data[p+3] = 0; 
+                            if (x > 0 && !visited[idx - 1]) {{ stackX.push(x - 1); stackY.push(y); }}
+                            if (x < width - 1 && !visited[idx + 1]) {{ stackX.push(x + 1); stackY.push(y); }}
+                            if (y > 0 && !visited[idx - width]) {{ stackX.push(x); stackY.push(y - 1); }}
+                            if (y < height - 1 && !visited[idx + width]) {{ stackX.push(x); stackY.push(y + 1); }}
                         }}
                     }}
                     ctx.putImageData(imageData, 0, 0);
