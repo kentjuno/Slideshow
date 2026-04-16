@@ -2,7 +2,7 @@ import base64
 import os
 
 def build_monk_butterfly():
-    monk_img_path = r"f:\AntiGravity\Slideshow\merged_3frames_clean.png"
+    monk_img_path = r"f:\AntiGravity\Slideshow\merged_3frames_noshadow2.png"
     butterfly_img_path = r"C:\Users\Kent\.gemini\antigravity\brain\072a3b75-c43c-4b8d-9bef-f0396b7cafdf\butterfly_spritesheet_1776296992762.png"
     
     with open(monk_img_path, "rb") as f:
