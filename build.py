@@ -122,7 +122,7 @@ cat_container = """
             position: absolute;
             bottom: -5px; /* Ép sát đáy màn hình + ăn gian 5px để chân đạp đất thật hơn */
             left: -350px;
-            width: 300px;
+            width: 150px;
             animation: walk-across 30s linear infinite;
             z-index: 9999;
 """
@@ -219,7 +219,7 @@ catchasing_image = r"C:\Users\Kent\.gemini\antigravity\brain\072a3b75-c43c-4b8d-
 catchasing_output = r"f:\AntiGravity\Slideshow\catchasing.html"
 catchasing_container = """
             position: absolute;
-            width: 200px; /* 2/3 kích thước mèo gốc (300 * 2/3 = 200) */
+            width: 100px; /* Bằng 1/2 ban đầu */
             z-index: 9999;
 """
 catchasing_canvas = """
@@ -240,8 +240,8 @@ catchasing_js = """
         let speed = 0.4; 
 
         function getNewTarget() {
-            let maxW = (window.innerWidth || 1920) - 200;
-            let maxH = (window.innerHeight || 1080) - 200;
+            let maxW = (window.innerWidth || 1920) - 100;
+            let maxH = (window.innerHeight || 1080) - 100;
             if (maxW < 0) maxW = 0;
             if (maxH < 0) maxH = 0;
             return {
@@ -315,8 +315,8 @@ catchasing_js = """
                 let n = getNewTarget();
                 targetX = n.x; targetY = n.y;
             }
-            posX = Math.max(-200, Math.min(posX, maxW + 200));
-            posY = Math.max(-200, Math.min(posY, maxH + 200));
+            posX = Math.max(-100, Math.min(posX, maxW + 100));
+            posY = Math.max(-100, Math.min(posY, maxH + 100));
             
             let flip = (dx >= 0) ? 1 : -1; 
             
