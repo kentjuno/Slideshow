@@ -2,7 +2,7 @@ import base64
 import os
 
 def build_monk_butterfly():
-    monk_img_path = r"C:\Users\Kent\.gemini\antigravity\brain\072a3b75-c43c-4b8d-9bef-f0396b7cafdf\monk_spritesheet_1776307510685.png"
+    monk_img_path = r"f:\AntiGravity\Slideshow\merged_3frames_noshadow2.png"
     butterfly_img_path = r"C:\Users\Kent\.gemini\antigravity\brain\072a3b75-c43c-4b8d-9bef-f0396b7cafdf\butterfly_spritesheet_1776296992762.png"
     
     with open(monk_img_path, "rb") as f:
@@ -95,6 +95,17 @@ def build_monk_butterfly():
                                 if (y < height - 1 && !visited[idx + width]) {{ stackX.push(x); stackY.push(y + 1); }}
                             }}
                         }}
+                        
+                        // Protect internal white pixels from OBS Color Key filter
+                        for (let j = 0; j < data.length; j += 4) {{
+                            if (data[j+3] !== 0) {{ // Nếu pixel này chưa bị xoá (tức là nằm bên trong nhân vật)
+                                if (data[j] > 220 && data[j+1] > 220 && data[j+2] > 220) {{
+                                    data[j] = 210;
+                                    data[j+1] = 210;
+                                    data[j+2] = 220; // Màu trắng ngà hơi xanh xám để OBS ko nhận diện là trắng xoá
+                                }}
+                            }}
+                        }}
                     }} else {{
                         for (let j = 0; j < data.length; j += 4) {{
                             if (data[j] > 230 && data[j+1] > 230 && data[j+2] > 230) {{
@@ -123,18 +134,29 @@ def build_monk_butterfly():
         let monkFrames = [];
         let monkAttentive = false;
 
-        loadProcessedSprite("{monk_b64}", 2, true, (frames, w, h) => {{
+        let monkCurrentFrame = 0;
+        let monkLastFrameTime = 0;
+
+        loadProcessedSprite("{monk_b64}", 3, true, (frames, w, h) => {{
             monkFrames = frames;
             monkCanvas.width = w;
             monkCanvas.height = h;
-            drawMonk();
+            requestAnimationFrame(drawMonk);
         }});
 
-        function drawMonk() {{
+        function drawMonk(now) {{
             if (monkFrames.length > 0) {{
+                if (!monkLastFrameTime) monkLastFrameTime = now;
+                let targetFrame = monkAttentive ? 2 : 0;
+                
+                if (now - monkLastFrameTime > 80) {{
+                    if (monkCurrentFrame < targetFrame) monkCurrentFrame++;
+                    else if (monkCurrentFrame > targetFrame) monkCurrentFrame--;
+                    monkLastFrameTime = now;
+                }}
+                
                 monkCtx.clearRect(0, 0, monkCanvas.width, monkCanvas.height);
-                const frameIdx = monkAttentive ? 1 : 0;
-                monkCtx.drawImage(monkFrames[frameIdx], 0, 0);
+                monkCtx.drawImage(monkFrames[monkCurrentFrame], 0, 0);
             }}
             requestAnimationFrame(drawMonk);
         }}
